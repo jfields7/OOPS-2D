@@ -51,7 +51,7 @@ void Wave::rhs(const Grid& grid, double **u, double **dudt){
 
   // Apply outflow boundary conditions.
   // Left side.
-  if(commPartners[0][0] == -1){
+  if(domain->hasBoundary(LEFT)){
     for(unsigned int j = 0; j < ny; j++){
       unsigned int xy = grid.getIndex(nb,j);
       unsigned int x1y = grid.getIndex(nb + 1, j);
@@ -61,7 +61,7 @@ void Wave::rhs(const Grid& grid, double **u, double **dudt){
     }
   }
   // Right side.
-  if(commPartners[0][1] == -1){
+  if(domain->hasBoundary(RIGHT)){
     for(unsigned int j = 0; j < ny; j++){
       unsigned int xy = grid.getIndex(nx - nb - 1,j);
       unsigned int x1y = grid.getIndex(nx - nb - 2, j);
@@ -71,7 +71,7 @@ void Wave::rhs(const Grid& grid, double **u, double **dudt){
     }
   }
   // Bottom side.
-  if(commPartners[1][0] == -1){
+  if(domain->hasBoundary(DOWN)){
     for(unsigned int i = 0; i < nx; i++){
       unsigned int xy = grid.getIndex(i,nb);
       unsigned int x1y = grid.getIndex(i, nb + 1);
@@ -81,7 +81,7 @@ void Wave::rhs(const Grid& grid, double **u, double **dudt){
     }
   }
   // Top side.
-  if(commPartners[1][1] == -1){
+  if(domain->hasBoundary(UP)){
     for(unsigned int i = 0; i < nx; i++){
       unsigned int xy = grid.getIndex(i,ny - nb - 1);
       unsigned int x1y = grid.getIndex(i, ny - nb - 2);

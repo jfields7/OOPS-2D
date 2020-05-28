@@ -24,4 +24,4 @@ Result TestParameters::broadcastParameters(){
 
   comm->broadcastParameter(&mProjectName);
 
-}
+  return SUCCESS;}

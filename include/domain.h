@@ -53,6 +53,11 @@ class Domain{
      */
     pair2<int> commPartners;
 
+    /**
+     * Boundary flags
+     */
+    unsigned int bflag;
+
     // MPI Routines {{{
     void assignCommunicationPartners(int dims[2]);
 
@@ -136,6 +141,13 @@ class Domain{
      */
     inline const pair2<int>& getCommPartners() const{
       return commPartners;
+    }
+
+    /**
+     *
+     */
+    inline bool hasBoundary(Boundary b){
+      return (bflag & b) > 0;
     }
     // }}}
 

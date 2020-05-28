@@ -121,6 +121,7 @@ def writeClass(obj,pathdir):
       f.write("  m%s = static_cast<%s>(bc%s);\n\n" % (var["name"], var["name"], var["name"]));
     else:
       f.write("  comm->broadcastParameter(&m%s);\n\n" % var["name"]);
+  f.write("  return SUCCESS;");
   f.write("}\n");
 
   f.close();

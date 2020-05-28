@@ -18,4 +18,4 @@ Result MeshParameters::broadcastParameters(){
 
   comm->broadcastParameter(&mGridPointsY);
 
-}
+  return SUCCESS;}

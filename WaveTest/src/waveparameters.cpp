@@ -30,4 +30,4 @@ Result WaveParameters::broadcastParameters(){
 
   comm->broadcastParameter(&mGhostPoints);
 
-}
+  return SUCCESS;}
