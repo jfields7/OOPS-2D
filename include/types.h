@@ -21,7 +21,6 @@ enum Result{
 };
 
 enum Boundary{
-  NONE,
   LEFT,
   RIGHT,
   UP,

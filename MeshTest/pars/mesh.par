@@ -1,0 +1,7 @@
+[Mesh]
+DomainMinX = -1.0
+DomainMaxX = 1.0
+DomainMinY = -1.0
+DomainMaxY = 1.0
+GridPointsX = 101
+GridPointsY = 101

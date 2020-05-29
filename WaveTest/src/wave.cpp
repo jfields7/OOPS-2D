@@ -23,10 +23,10 @@ void Wave::rhs(const Grid& grid, double **u, double **dudt){
   double dx = grid.getSpacing();
 
   pair2<int> commPartners = domain->getCommPartners();
-  unsigned int xstart = (commPartners[0][0] == -1) ? nb + 1 : nb;
-  unsigned int xend = (commPartners[0][1] == -1) ? nx - nb - 1 : nx - nb;
-  unsigned int ystart = (commPartners[1][0] == -1) ? nb + 1 : nb;
-  unsigned int yend = (commPartners[1][1] == -1) ? ny - nb - 1 : ny - nb;
+  unsigned int xstart = (domain->hasBoundary(LEFT)) ? nb + 1 : nb;
+  unsigned int xend = (domain->hasBoundary(RIGHT)) ? nx - nb - 1 : nx - nb;
+  unsigned int ystart = (domain->hasBoundary(DOWN)) ? nb + 1 : nb;
+  unsigned int yend = (domain->hasBoundary(UP)) ? ny - nb - 1 : ny - nb;
 
   // Zero out the righthand side. This makes fixing the boundaries easier
   // because we don't have to treat the corners specially.

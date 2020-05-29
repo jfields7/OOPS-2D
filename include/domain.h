@@ -147,7 +147,7 @@ class Domain{
      *
      */
     inline bool hasBoundary(Boundary b){
-      return (bflag & b) > 0;
+      return (bflag & (1 << b)) > 0;
     }
     // }}}
 

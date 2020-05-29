@@ -1,0 +1,9 @@
+[Test]
+InitialConditions = FLAT
+GridPointsX = 201
+GridPointsY = 201
+DomainMinX = -0.5
+DomainMaxX = 0.5
+DomainMinY = -0.5
+DomainMaxY = 0.5
+ProjectName = Working Project

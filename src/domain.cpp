@@ -102,28 +102,28 @@ Result Domain::buildMesh(unsigned int shp[2]){
 void Domain::assignCommunicationPartners(int dims[2]){
   if(location[0] == 0){
     commPartners[0][0] = -1;
-    bflag = bflag | LEFT;
+    bflag = bflag | (1 << LEFT);
   }
   else{
     commPartners[0][0] = location[0]-1 + dims[0]*location[1];
   }
   if(location[0] == dims[0]-1){
     commPartners[0][1] = -1;
-    bflag = bflag | RIGHT;
+    bflag = bflag | (1 << RIGHT);
   }
   else{
     commPartners[0][1] = location[0]+1 + dims[0]*location[1];
   }
   if(location[1] == 0){
     commPartners[1][0] = -1;
-    bflag = bflag | DOWN;
+    bflag = bflag | (1 << DOWN);
   }
   else{
     commPartners[1][0] = location[0] + dims[0]*(location[1] - 1);
   }
   if(location[1] == dims[1]-1){
     commPartners[1][1] = -1;
-    bflag = bflag | UP;
+    bflag = bflag | (1 << UP);
   }
   else{
     commPartners[1][1] = location[0] + dims[0]*(location[1] + 1);
