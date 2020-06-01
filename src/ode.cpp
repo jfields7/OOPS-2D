@@ -11,8 +11,6 @@
 ODE::ODE(const unsigned int n, Domain *d, Solver *s) : nEqs(n), domain(d), solver(s){
   max_dx = 0.0;
   time = 0.0;
-
-  addField("Evolution", nEqs, true, true);
 }
 
 ODE::~ODE(){

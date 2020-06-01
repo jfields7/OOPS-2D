@@ -6,6 +6,9 @@
 // Constructor
 Wave::Wave(Domain* d, Solver* s) : ODE(2, d, s){
   params = nullptr;
+
+  addField("Evolution", nEqs, true, true);
+
   reallocateData();
 }
 
