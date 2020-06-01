@@ -9,6 +9,7 @@ SolverData::SolverData(unsigned int eqCount, unsigned int nStages, const Grid& g
   shp[0] = grid.getSize()[0];
   shp[1] = grid.getSize()[1];
   unsigned int n = shp[0]*shp[1];
+  currStage = 0;
   // Try to allocate memory for the arrays.
   try{
     data_int = new double*[eqCount];
@@ -28,6 +29,7 @@ SolverData::SolverData(unsigned int eqCount, unsigned int nStages, const Grid& g
     nEq = 0;
     data_int = NULL;
     work = NULL;
+    currStage = 0;
   }
 }
 // }}}

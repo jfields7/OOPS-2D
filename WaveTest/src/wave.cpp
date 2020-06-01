@@ -14,13 +14,17 @@ Wave::~Wave(){
 
 }
 
-void Wave::rhs(const Grid& grid, double **u, double **dudt){
+void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
+  const Grid& grid = fieldMap->getGrid();
   unsigned int nx = grid.getSize()[0];
   unsigned int ny = grid.getSize()[1];
 
   unsigned int nb = domain->getGhostPoints();
 
   double dx = grid.getSpacing();
+
+  double **dudt = fieldMap->getSolverField("Evolution")->getCurrentRHS();
+  double **u = fieldMap->getSolverField("Evolution")->getIntermediateData();
 
   pair2<int> commPartners = domain->getCommPartners();
   unsigned int xstart = (domain->hasBoundary(LEFT)) ? nb + 1 : nb;

@@ -18,11 +18,14 @@ ODE::ODE(const unsigned int n, Domain *d, Solver *s) : nEqs(n), domain(d), solve
 ODE::~ODE(){
 }
 
+// reallocateData {{{
 Result ODE::reallocateData(){
-  fieldData = std::unique_ptr<FieldMap>(new FieldMap(domain->getGrid(), fieldList));
+  //fieldData = std::unique_ptr<FieldMap>(new FieldMap(domain->getGrid(), fieldList));
+  fieldData = std::make_shared<FieldMap>(domain->getGrid(), fieldList);
 
   return SUCCESS;
 }
+// }}}
 
 // addField {{{
 Result ODE::addField(std::string name, unsigned int eqs, bool isEvolved, bool isComm){
@@ -71,7 +74,48 @@ Result ODE::evolveStep(double dt){
   // Keep track of the current time as well as the original time.
   double old_time = time;
 
-  auto evol = fieldData->getSolverField("Evolution");
+  solver->setStageTime(old_time, time, dt, 0);
+  // Copy the current solution into the intermediate variables.
+  for(auto fieldpair : fieldData->getSolverFields()){
+    auto field = fieldpair.second;
+    field->setCurrentStage(0);
+    double **data0 = field->getData();
+    double **dataint = field->getIntermediateData();
+    unsigned int vars = field->getEqCount();
+    unsigned int shp = field->getGrid().getSize()[0]*field->getGrid().getSize()[1];
+    for(unsigned int m = 0; m < vars; m++){
+      for(unsigned int i = 0; i < shp; i++){
+        dataint[m][i] = data0[m][i];
+      }
+    }
+  }
+  // Calculate the first stage.
+  solver->calcStage(this, fieldData, dt, 0);
+
+  // Perform the grid exchange and apply boundary conditions.
+  doAfterStage();
+  performGridExchange();
+  doAfterExchange();
+  applyBoundaries();
+  doAfterBoundaries();
+
+  for(unsigned int i = 1; i < solver->getNStages(); i++){
+    solver->setStageTime(old_time, time, dt, i);
+    // Loop over every data set in the domain to update the stage.
+    for(auto fieldpair : fieldData->getSolverFields()){
+      fieldpair.second->setCurrentStage(i);
+    }
+    solver->calcStage(this, fieldData, dt, i);
+
+    // Perform the grid exchange and apply boundary conditions.
+    doAfterStage();
+    performGridExchange();
+    doAfterExchange();
+    applyBoundaries();
+    doAfterBoundaries();
+  }
+  
+  /*auto evol = fieldData->getSolverField("Evolution");
   // Loop over every stage for the solver.
   for(unsigned int i = 0; i < solver->getNStages(); i++){
     solver->setStageTime(old_time, time, dt, i);
@@ -83,23 +127,37 @@ Result ODE::evolveStep(double dt){
     doAfterExchange(true);
     applyBoundaries(true);
     doAfterBoundaries(true);
-  }
+  }*/
 
   time = old_time + dt;
-  solver->combineStages(evol->getWorkData(), evol->getData(), evol->getGrid(), dt, nEqs);
+  //solver->combineStages(evol->getWorkData(), evol->getData(), evol->getGrid(), dt, nEqs);
+  solver->combineStages(fieldData, dt);
+  doAfterStage();
+  performGridExchange();
+  doAfterExchange();
+  applyBoundaries();
+  doAfterBoundaries();
 
-  doAfterStage(false);
-  performGridExchange(false);
-  doAfterExchange(false);
-  applyBoundaries(false);
-  doAfterBoundaries(false);
+  // Swap all the intermediate data back into the solution array.
+  for(auto fieldpair : fieldData->getSolverFields()){
+    auto field = fieldpair.second;
+    double **data0 = field->getData();
+    double **dataint = field->getIntermediateData();
+    unsigned int vars = field->getEqCount();
+    unsigned int shp = field->getGrid().getSize()[0]*field->getGrid().getSize()[1];
+    for(unsigned int m = 0; m < vars; m++){
+      for(unsigned int i = 0; i < shp; i++){
+        data0[m][i] = dataint[m][i];
+      }
+    }
+  }
 
   return SUCCESS;
 }
 // }}}
 
 // performGridExchange {{{
-void ODE::performGridExchange(bool intermediate){
+void ODE::performGridExchange(){
   // Collect some information before getting started.
   MPICommunicator *comm = MPICommunicator::getInstance();
   int rank = comm->getRank();
@@ -161,7 +219,7 @@ void ODE::performGridExchange(bool intermediate){
         continue;
       }
       double** data;
-      if(!intermediate || info.nStages == 0){
+      if(info.nStages == 0){
         data = (*fieldData)[field.first]->getData();
       }
       else{
@@ -240,7 +298,7 @@ void ODE::performGridExchange(bool intermediate){
         continue;
       }
       double **data;
-      if(!intermediate || info.nStages == 0){
+      if(info.nStages == 0){
         data = (*fieldData)[field.first]->getData();
       }
       else{
@@ -282,7 +340,6 @@ void ODE::performGridExchange(bool intermediate){
 // }}}
 
 // dumpField {{{
-// FIXME: Will not work properly with MPI currently.
 void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
   unsigned int nb = domain->getGhostPoints();
   const Grid *grid = domain->getGrid();

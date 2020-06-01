@@ -66,7 +66,7 @@ class ODE{
     /**
      * The data for all fields on this domain.
      */
-    std::unique_ptr<FieldMap> fieldData;
+    std::shared_ptr<FieldMap> fieldData;
 
     /**
      * The solver to use for this system of ODEs.
@@ -96,7 +96,7 @@ class ODE{
      * @param intermediate - Whether we're modifying the intermediate dataset
      *                       or the original dataset.
      */
-    virtual void applyBoundaries(bool) {};
+    virtual void applyBoundaries() {};
 
     /**
      * A function that does nothing by default but can be overwritten in a base
@@ -105,7 +105,7 @@ class ODE{
      * @param intermediate - Whether we're working with an intermediate solver
      *                       stage or the final combining step.
      */
-    virtual void doAfterStage(bool){};
+    virtual void doAfterStage(){};
 
     /**
      * A function that does nothing by default but can be overwritten in a base
@@ -114,7 +114,7 @@ class ODE{
      * @param intermediate - Whether we're working with an intermediate solver
      *                       stage or the final combining step.
      */
-    virtual void doAfterExchange(bool){};
+    virtual void doAfterExchange(){};
 
     /**
      * A function that does nothing by default but can be overwritten in a base
@@ -122,7 +122,7 @@ class ODE{
      * @param intermediate - Whether we're working with an intermediate solver
      *                       stage or the final combining step.
      */
-    virtual void doAfterBoundaries(bool){};
+    virtual void doAfterBoundaries(){};
 
     /**
      * Add a new field to the ODE object. The reallocateData() function
@@ -149,7 +149,7 @@ class ODE{
      * Exchange the ghost points between the grids. If the grids are different
      * sizes, this involves interpolation.
      */
-    void performGridExchange(bool intermediate);
+    void performGridExchange();
 
   public:
     /**
@@ -205,7 +205,7 @@ class ODE{
      * @param dudt - A 2d array of data to store the righthand side data for
      *               this Grid object.
      */
-    virtual void rhs(const Grid& grid, double** data, double** dudt) = 0;
+    virtual void rhs(std::shared_ptr<FieldMap>& fieldMap) = 0;
 
     /**
      * Get the number of equations in this system.
@@ -222,9 +222,11 @@ class ODE{
     }
 
     /**
-     * Dump all of the current data to a .csv file.
+     * Get the list of fields.
      */
-    void dump_csv(char *name, double t, unsigned int var);
+    inline const std::map<std::string, FieldInfo>& getFieldInfo(){
+      return fieldList;
+    }
 
     /**
      * Get the evolution time.

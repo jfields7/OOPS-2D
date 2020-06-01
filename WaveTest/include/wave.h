@@ -13,7 +13,7 @@ class Wave : public ODE{
     WaveParameters *params;
 
   protected:
-    virtual void rhs(const Grid& grid, double **u, double **dudt);
+    virtual void rhs(std::shared_ptr<FieldMap>& fieldMap);
 
   public:
     Wave(Domain* d, Solver* s);
