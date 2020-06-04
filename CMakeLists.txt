@@ -23,7 +23,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-option(USE_SDF "Enable exporting to SDF file" OFF)
 option(BUILD_TESTS "Compile OOPS unit tests" OFF)
 
 # Configure a header file that will pass on our settings.
