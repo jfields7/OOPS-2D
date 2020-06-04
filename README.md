@@ -6,4 +6,4 @@ To be fair, we've all done this. We start a research problem, realize that the c
 By providing a base core of components that all interact seamlessly and creating a flexible interface for your own projects, OOPS-2D makes it a lot easier to work with your own problems. It's not a flawless solution; the code is currently missing a lot of features that are necessary for production codes, such as alternative coordinate systems and grid layouts, mesh refinement, and a complex suite of data analysis tools. The code is 100% geared toward initial boundary value problems using classic Runge-Kutta or multistage solvers, so your mileage may vary with complex adaptive solvers, symplectic integrators, or certain implicit solvers. However, it's the perfect solution for rapid prototyping or learning the basics of scientific computing.
 
 # Documentation
-For the OOPS-2D documentation, please see the [wiki](https://github.com/jfields7/OOPS/wiki).
+For the OOPS-2D documentation, please see the [wiki](https://github.com/jfields7/OOPS-2D/wiki).
