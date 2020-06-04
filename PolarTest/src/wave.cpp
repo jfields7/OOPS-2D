@@ -26,6 +26,7 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
 
   double dx = grid.getSpacing()[0];
   double dy = grid.getSpacing()[1];
+  auto points = grid.getPoints();
 
   double **dudt = fieldMap->getSolverField("Evolution")->getCurrentRHS();
   double **u = fieldMap->getSolverField("Evolution")->getIntermediateData();
@@ -33,8 +34,8 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
   pair2<int> commPartners = domain->getCommPartners();
   unsigned int xstart = (domain->hasBoundary(LEFT)) ? nb + 1 : nb;
   unsigned int xend = (domain->hasBoundary(RIGHT)) ? nx - nb - 1 : nx - nb;
-  unsigned int ystart = (domain->hasBoundary(DOWN)) ? nb + 1 : nb;
-  unsigned int yend = (domain->hasBoundary(UP)) ? ny - nb - 1 : ny - nb;
+  unsigned int ystart = nb;
+  unsigned int yend = ny - nb;
 
   // Zero out the righthand side. This makes fixing the boundaries easier
   // because we don't have to treat the corners specially.
@@ -50,11 +51,15 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
   for(unsigned int j = ystart; j < yend; j++){
     for(unsigned int i = xstart; i < xend; i++){
       unsigned int xy = grid.getIndex(i,j);
+      unsigned int xpy = grid.getIndex(i+1,j);
+      unsigned int xmy = grid.getIndex(i-1,j);
+      unsigned int xyp = grid.getIndex(i,j+1);
+      unsigned int xym = grid.getIndex(i,j-1);
+      double r = points[0][i];
       dudt[U_PHI][xy] = u[U_PI][xy];
-      dudt[U_PI ][xy] = (u[U_PHI][grid.getIndex(i+1,j)] - 2.0*u[U_PHI][xy] +
-                         u[U_PHI][grid.getIndex(i-1,j)])/(dx*dx) +
-                        (u[U_PHI][grid.getIndex(i,j+1)] - 2.0*u[U_PHI][xy] + 
-                         u[U_PHI][grid.getIndex(i,j-1)])/(dy*dy);
+      dudt[U_PI ][xy] = (u[U_PHI][xpy] - 2.0*u[U_PHI][xy] + u[U_PHI][xmy])/(dx*dx) +
+                        (u[U_PHI][xpy] - u[U_PHI][xmy])/(2.0*dx*r) +
+                        (u[U_PHI][xyp] - 2.0*u[U_PHI][xy] + u[U_PHI][xym])/(dy*dy*r*r);
     }
   }
 
@@ -79,32 +84,10 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
       dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dx);
     }
   }
-  // Bottom side.
-  if(domain->hasBoundary(DOWN)){
-    for(unsigned int i = 0; i < nx; i++){
-      unsigned int xy = grid.getIndex(i,nb);
-      unsigned int x1y = grid.getIndex(i, nb + 1);
-      unsigned int x2y = grid.getIndex(i, nb + 2);
-      dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dy);
-      dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dy);
-    }
-  }
-  // Top side.
-  if(domain->hasBoundary(UP)){
-    for(unsigned int i = 0; i < nx; i++){
-      unsigned int xy = grid.getIndex(i,ny - nb - 1);
-      unsigned int x1y = grid.getIndex(i, ny - nb - 2);
-      unsigned int x2y = grid.getIndex(i, ny - nb - 3);
-      dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dy);
-      dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dy);
-    }
-  }
 }
 
 void Wave::initData(){
   pair2<double> bounds = domain->getBounds();
-  double x0 = 0.5*(bounds[0][1] + bounds[0][0]);
-  double y0 = 0.5*(bounds[1][1] + bounds[1][0]);
   double amp = 1.0;
   double sigma = 0.125;
   // Just assume a Gaussian for the time being.
@@ -119,7 +102,7 @@ void Wave::initData(){
   for(unsigned int j = 0; j < ny; j++){
     for(unsigned int i = 0; i < nx; i++){
       unsigned int xy = domain->getGrid()->getIndex(i,j);
-      u[U_PHI][xy] = amp*std::exp(-((x[i] - x0)*(x[i] - x0) + (y[j] - y0)*(y[j] - y0))/(sigma*sigma));
+      u[U_PHI][xy] = amp*std::exp(-x[i]*x[i]/(sigma*sigma));
       u[U_PI ][xy] = 0.0;
     }
   }

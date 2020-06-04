@@ -1,0 +1,10 @@
+[Wave]
+InitialConditions = GAUSSIAN
+GridPointsR = 101
+GridPointsT = 101
+DomainMinR = 0.01
+DomainMaxR = 0.5
+TimeStart = 0.0
+TimeEnd = 1.0
+ProjectName = Working Project
+GhostPoints = 3

@@ -162,7 +162,13 @@ void ODE::performGridExchange(){
   int size = comm->getWorldSize();
 
   // If there's only one rank, there's no reason to exchange data.
-  if(size == 1){
+  if(size == 1 && !domain->isPeriodic()){
+    return;
+  }
+  else if(size == 1 && domain->isPeriodic()){
+    // We need to make sure that the periodic theta boundary gets
+    // applied, though.
+    performPeriodicExchange();
     return;
   }
 
@@ -337,6 +343,41 @@ void ODE::performGridExchange(){
 }
 // }}}
 
+// performPeriodicExchange {{{
+void ODE::performPeriodicExchange(){
+  const Grid* grid = domain->getGrid();
+  auto shp = grid->getSize();
+  double **data;
+  unsigned int nb = domain->getGhostPoints();
+  for(auto field : fieldList){
+    FieldInfo &info = field.second;
+    if(!info.isComm){
+      continue;
+    }
+    if(info.nStages == 0){
+      data = (*fieldData)[field.first]->getData();
+    }
+    else{
+      data = fieldData->getSolverField(field.first)->getIntermediateData();
+    }
+    unsigned int eq = info.nEqs;
+    for(unsigned int m = 0; m < eq; m++){
+      for(unsigned int j = 0; j < nb; j++){
+        for(unsigned int i = 0; i < shp[0]; i++){
+          unsigned int ps = grid->getIndex(i, j);
+          unsigned int pc = grid->getIndex(i, j + shp[1] - 2*nb - 1);
+          data[m][ps] = data[m][pc];
+
+          ps = grid->getIndex(i, shp[1] - nb + j);
+          pc = grid->getIndex(i, nb + j + 1);
+          data[m][ps] = data[m][pc];
+        }
+      }
+    }
+  }
+}
+// }}}
+
 // dumpField {{{
 void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
   unsigned int nb = domain->getGhostPoints();
@@ -360,7 +401,7 @@ void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
   char newname[256];
   strcpy(newname,ss.str().c_str());
 
-  output::outputCSV(newname, data[var], points[0], points[1], shp, t, nb);
+  output::outputCSV(newname, data[var], points[0], points[1], shp, t, nb,domain->getCoordinates() == Domain::POLAR);
 
   // Collate the output.
   if(rank == root && size > 1){

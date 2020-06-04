@@ -64,6 +64,12 @@ Result Domain::buildGrid(unsigned int shp[2], pair2<double> &bounds){
       return OUT_OF_BOUNDS;
     }
   }
+  // Consider redefining this in terms of multiples of PI? Might be more accurate.
+  if(coords == POLAR){
+    if(bounds[1][1] > 2.0*PI || bounds[1][0] < 0.0 || bounds[0][0] < 0.0){
+      return OUT_OF_BOUNDS;
+    }
+  }
   //grid = Grid(bounds, shp, nghosts);
   delete grid;
   grid = new Grid(bounds, shp, nghosts);
@@ -74,7 +80,9 @@ Result Domain::buildGrid(unsigned int shp[2], pair2<double> &bounds){
 
 // MPI Routines {{{
 // buildMesh {{{
-Result Domain::buildMesh(unsigned int shp[2]){
+Result Domain::buildMesh(unsigned int shp[2], GridCoordinates coord, bool periodic){
+  this->periodic = periodic;
+  coords = coord;
   MPICommunicator *comm = MPICommunicator::getInstance();
   if(!comm->getIsInitialized()){
     return UNINITIALIZED;
@@ -114,15 +122,29 @@ void Domain::assignCommunicationPartners(int dims[2]){
   else{
     commPartners[0][1] = location[0]+1 + dims[0]*location[1];
   }
+
+  // If we have periodic boundaries, we need to connect the bottom
+  // to the top and vice versa. Otherwise, we apply the same treatment
+  // as the left and right boundaries.
   if(location[1] == 0){
-    commPartners[1][0] = -1;
+    if(!periodic){
+      commPartners[1][0] = -1;
+    }
+    else{
+      commPartners[1][0] = location[0] + (dims[1] - 1)*dims[0];
+    }
     bflag = bflag | (1 << DOWN);
   }
   else{
     commPartners[1][0] = location[0] + dims[0]*(location[1] - 1);
   }
   if(location[1] == dims[1]-1){
-    commPartners[1][1] = -1;
+    if(!periodic){
+      commPartners[1][1] = -1;
+    }
+    else{
+      commPartners[1][1] = location[0];
+    }
     bflag = bflag | (1 << UP);
   }
   else{
@@ -133,16 +155,15 @@ void Domain::assignCommunicationPartners(int dims[2]){
 
 // divideGrids {{{
 Result Domain::divideGrids(unsigned int shp[2], int dims[2]){
-  // Check that the number of number of points in each direction
-  // will result in equal dimensions.
+  // Get the grid spacing.
   double dx = (bounds[0][1] - bounds[0][0])/(shp[0] - 1);
   double dy = (bounds[1][1] - bounds[1][0])/(shp[1] - 1);
-  if(fabs(dx - dy) > 1e-15){
+  /*if(fabs(dx - dy) > 1e-15){
     std::cout << "Grid spacing is not equal!\n";
     std::cout << "  dx = " << dx << "\n";
     std::cout << "  dy = " << dy << "\n";
     return UNEQUAL_SPACING;
-  }
+  }*/
   // Divide up the mesh.
   pair2<double> grid_bounds;
   // The bounds are best calculated from the pointwise dimensions.
@@ -155,9 +176,10 @@ Result Domain::divideGrids(unsigned int shp[2], int dims[2]){
   unsigned int ny = shp[1]/dims[1];
   grid_bounds[0][0] = bounds[0][0] + location[0]*nx*dx;
   pointBounds[0][0] = location[0]*nx;
-  grid_bounds[1][0] = bounds[1][0] + location[1]*ny*dx;
+  grid_bounds[1][0] = bounds[1][0] + location[1]*ny*dy;
   pointBounds[1][0] = location[1]*ny;
-  if(commPartners[0][1] == -1){
+  if(hasBoundary(RIGHT)){
+  //if(commPartners[0][1] == -1){
     grid_bounds[0][1] = bounds[0][1];
     sz[0] = nx + (shp[0] % nx);
     pointBounds[0][1] = shp[0]-1;
@@ -167,12 +189,13 @@ Result Domain::divideGrids(unsigned int shp[2], int dims[2]){
     pointBounds[0][1] = (location[0] + 1)*nx;
     sz[0] = nx + 1;
   }
-  if(commPartners[1][1] == -1){
+  if(hasBoundary(UP)){
+  //if(commPartners[1][1] == -1){
     grid_bounds[1][1] = bounds[1][1];
     sz[1] = ny + (shp[1] % ny);
   }
   else{
-    grid_bounds[1][1] = bounds[1][0] + (location[1] + 1)*ny*dx;
+    grid_bounds[1][1] = bounds[1][0] + (location[1] + 1)*ny*dy;
     pointBounds[1][1] = (location[1] + 1)*ny;
     sz[1] = ny + 1;
   }

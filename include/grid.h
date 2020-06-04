@@ -20,7 +20,7 @@
 class Grid{
   private:
     // Grid spacing.
-    double dx;
+    double dx[2];
     // Number of grid points.
     unsigned int shp[2];
     // The boundaries of the grid.
@@ -78,7 +78,7 @@ class Grid{
      * Get the grid spacing for this grid. Because it is assumed to be a uniform grid,
      * This grid spacing applies to both the x and y directions.
      */
-    inline double getSpacing() const{
+    inline const double* getSpacing() const{
       return dx;
     }
     

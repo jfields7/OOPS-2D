@@ -24,12 +24,8 @@ Grid::Grid(const pair2<double>& bounds, unsigned int sz[2], unsigned int nghosts
   }
 
   // Let's calculate the grid spacing. Assume it's a cell-edge grid.
-  dx = (grid_bounds[0][1] - grid_bounds[0][0])/(double)(sz[0]-1);
-  if(fabs((grid_bounds[1][1] - grid_bounds[1][0])/(double)(sz[1]-1) - dx) > 1e-15){
-    // Grid spacing is not equal. Complain.
-    std::cout << "Grid spacing is not equal! Adjusting y-max bound.\n";
-    grid_bounds[1][1] = grid_bounds[1][0] + dx*(sz[1] - 1);
-  }
+  dx[0] = (grid_bounds[0][1] - grid_bounds[0][0])/(double)(sz[0]-1);
+  dx[1] = (grid_bounds[1][1] - grid_bounds[1][0])/(double)(sz[1]-1);
 
   // Construct the grid. Start by adding ghost points.
   shp[0] = sz[0] + 2*nghosts;
@@ -38,17 +34,18 @@ Grid::Grid(const pair2<double>& bounds, unsigned int sz[2], unsigned int nghosts
     points[0] = new double[shp[0]];
     points[1] = new double[shp[1]];
     for(unsigned int i = 0; i < shp[0]; i++){
-      points[0][i] = grid_bounds[0][0] + ((int)i - (int)nghosts)*dx;
+      points[0][i] = grid_bounds[0][0] + ((int)i - (int)nghosts)*dx[0];
     }
     for(unsigned int i = 0; i < shp[1]; i++){
-      points[1][i] = grid_bounds[1][0] + ((int)i - (int)nghosts)*dx;
+      points[1][i] = grid_bounds[1][0] + ((int)i - (int)nghosts)*dx[1];
     }
   }
   catch(std::bad_alloc& ba){
     std::cout << "Failed to allocate memory for grid.\n";
     shp[0] = 0;
     shp[1] = 0;
-    dx = 0;
+    dx[0] = 0;
+    dx[1] = 0;
     points[0] = NULL;
     points[1] = NULL;
   }
@@ -61,7 +58,8 @@ Grid::Grid(const Grid& other){
   grid_bounds[0][1] = other.getBounds()[0][1];
   grid_bounds[1][0] = other.getBounds()[1][0];
   grid_bounds[1][1] = other.getBounds()[1][1];
-  dx = other.getSpacing();
+  dx[0] = other.getSpacing()[0];
+  dx[1] = other.getSpacing()[1];
   shp[0] = other.getSize()[0];
   shp[1] = other.getSize()[1];
   try{
@@ -78,7 +76,8 @@ Grid::Grid(const Grid& other){
     std::cout << "Failed to allocate memory for grid.\n";
     shp[0] = 0;
     shp[1] = 0;
-    dx = 0;
+    dx[0] = 0;
+    dx[1] = 0;
     points[0] = NULL;
     points[1] = NULL;
   }

@@ -37,16 +37,16 @@ int main(int argc, char *argv[]){
   // Let's set up our PDE!
   Domain domain = Domain();
   pair2<double> bounds;
-  bounds[0][0] = params.getDomainMinX();
-  bounds[0][1] = params.getDomainMaxX();
-  bounds[1][0] = params.getDomainMinY();
-  bounds[1][1] = params.getDomainMaxY();
+  bounds[0][0] = params.getDomainMinR();
+  bounds[0][1] = params.getDomainMaxR();
+  bounds[1][0] = 0.0;
+  bounds[1][1] = 2.0*PI;
   domain.setBounds(bounds);
   domain.setGhostPoints(params.getGhostPoints());
 
-  unsigned int shp[2] = {params.getGridPointsX(), params.getGridPointsY()};
+  unsigned int shp[2] = {params.getGridPointsR(), params.getGridPointsT()};
 
-  result = domain.buildMesh(shp);
+  result = domain.buildMesh(shp,Domain::POLAR,true);
 
   if(result != SUCCESS){
     std::cout << "There was an error building the mesh.\n";

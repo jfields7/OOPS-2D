@@ -16,6 +16,11 @@
  ****************************************************************************/
 
 class Domain{
+  public:
+    enum GridCoordinates{
+      CARTESIAN,
+      POLAR
+    };
   private:
     /**
      * The bounds of the problem.
@@ -52,6 +57,17 @@ class Domain{
      * the processor has no partner and actually contains the physical boundary.
      */
     pair2<int> commPartners;
+
+    /**
+     * The coordinate system for Grid objects on this Domain.
+     */
+    GridCoordinates coords;
+
+    /**
+     * Whether or not the theta variable is a periodic boundary.
+     */
+    bool periodic;
+
 
     /**
      * Boundary flags
@@ -144,10 +160,24 @@ class Domain{
     }
 
     /**
-     *
+     * Check if the Domain on this processor has a physical boundary.
      */
-    inline bool hasBoundary(Boundary b){
+    inline bool hasBoundary(Boundary b) const{
       return (bflag & (1 << b)) > 0;
+    }
+
+    /**
+     * Check if this Domain's Grid is in polar or cartesian coordinates.
+     */
+    inline GridCoordinates getCoordinates() const{
+      return coords;
+    }
+
+    /**
+     * Check if this Domain has a periodic polar boundary.
+     */
+    inline bool isPeriodic() const{
+      return periodic;
     }
     // }}}
 
@@ -161,7 +191,7 @@ class Domain{
      * @returns UNEQUAL_SPACING if the resulting grid increments are not equal
      *                          in the x and y directions. Otherwise, SUCCESS.
      */
-    Result buildGrid(unsigned int shp[2], pair2<double> &bounds); 
+    Result buildGrid(unsigned int shp[2], pair2<double> &bounds);
 
     // MPI Routines {{{
     /**
@@ -172,7 +202,7 @@ class Domain{
      * @returns SUCCESS if the mesh was build successfully, otherwise it returns
      *          an error code.
      */
-    Result buildMesh(unsigned int shp[2]);
+    Result buildMesh(unsigned int shp[2], GridCoordinates coord=CARTESIAN, bool periodic=false);
     // }}}
 };
 

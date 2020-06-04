@@ -151,6 +151,11 @@ class ODE{
      */
     void performGridExchange();
 
+    /**
+     * Apply the periodic grid exchange when we have a single core.
+     */
+    void performPeriodicExchange();
+
   public:
     /**
      * Since this is an abstract class, the only thing the constructor needs

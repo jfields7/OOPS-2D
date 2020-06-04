@@ -3,6 +3,8 @@
 #include <array>
 #include <oopsconfig.h>
 
+const double PI = 3.14159265358979323846;
+
 // A pair of ordered pairs.
 template<class T> using pair2 = std::array<std::array<T, 2>, 2>;
 
