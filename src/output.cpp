@@ -84,7 +84,7 @@ void output::writeVTKPoints(FILE *f, const double *x, const double *y, const uns
       for(unsigned int i = ghost; i < shp[0] - ghost; i++){
         buffer[0] = x[i]*cos(y[j]);
         buffer[1] = x[i]*sin(y[j]);
-        fwrite(buffer, sizeof(double), sizeof(buffer), f);
+        //fwrite(buffer, sizeof(double), sizeof(buffer), f);
         fprintf(f,"%g %g %g ",buffer[0], buffer[1], 0.0);
       }
     }
