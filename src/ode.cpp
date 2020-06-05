@@ -449,3 +449,29 @@ void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
   }
 }
 // }}}
+
+// outputVTK {{{
+void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsigned int var){
+  FILE *f;
+  f = fopen(name, "w");
+  
+  unsigned int nb = domain->getGhostPoints();
+  const Grid *grid = domain->getGrid();
+  double **data = (*fieldData)[field]->getData();
+  auto points = grid->getPoints();
+
+  unsigned int shp[2] = {0};
+  shp[0] = grid->getSize()[0];
+  shp[1] = grid->getSize()[1];
+
+  output::writeVTKHeader(f,points[0], points[1], shp, nb);
+  output::writeVTKTime(f, t);
+  fprintf(f,"      <PointData Scalars=\"%s\">\n",varname);
+  output::writeVTKScalar(f, varname, data[var], shp, nb);
+  fprintf(f,"      </PointData>\n");
+  output::writeVTKPoints(f, points[0], points[1], shp, nb, domain->getCoordinates() == Domain::POLAR);
+  output::writeVTKFooter(f);
+
+  fclose(f);
+}
+// }}}

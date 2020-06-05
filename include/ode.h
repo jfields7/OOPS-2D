@@ -249,6 +249,11 @@ class ODE{
      * Dump a field to a .csv file.
      */
     void dumpField(std::string field, char* name, double t, unsigned int var);
+
+    /**
+     * Write to a VTK file.
+     */
+    void outputVTK(std::string field, char* name, char* varname, double t, unsigned int var);
 };
 
 #endif
