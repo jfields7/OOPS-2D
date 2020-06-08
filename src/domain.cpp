@@ -20,6 +20,8 @@ Domain::Domain(){
   location[0] = 0;
   location[1] = 0;
   bflag = 0;
+  size[0] = 0;
+  size[1] = 0;
 }
 // }}}
 
@@ -81,6 +83,8 @@ Result Domain::buildGrid(unsigned int shp[2], pair2<double> &bounds){
 // MPI Routines {{{
 // buildMesh {{{
 Result Domain::buildMesh(unsigned int shp[2], GridCoordinates coord, bool periodic){
+  size[0] = shp[0];
+  size[1] = shp[1];
   this->periodic = periodic;
   coords = coord;
   MPICommunicator *comm = MPICommunicator::getInstance();
@@ -158,12 +162,6 @@ Result Domain::divideGrids(unsigned int shp[2], int dims[2]){
   // Get the grid spacing.
   double dx = (bounds[0][1] - bounds[0][0])/(shp[0] - 1);
   double dy = (bounds[1][1] - bounds[1][0])/(shp[1] - 1);
-  /*if(fabs(dx - dy) > 1e-15){
-    std::cout << "Grid spacing is not equal!\n";
-    std::cout << "  dx = " << dx << "\n";
-    std::cout << "  dy = " << dy << "\n";
-    return UNEQUAL_SPACING;
-  }*/
   // Divide up the mesh.
   pair2<double> grid_bounds;
   // The bounds are best calculated from the pointwise dimensions.
@@ -192,6 +190,7 @@ Result Domain::divideGrids(unsigned int shp[2], int dims[2]){
   if(hasBoundary(UP)){
   //if(commPartners[1][1] == -1){
     grid_bounds[1][1] = bounds[1][1];
+    pointBounds[1][1] = shp[1]-1;
     sz[1] = ny + (shp[1] % ny);
   }
   else{

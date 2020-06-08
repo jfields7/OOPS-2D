@@ -452,26 +452,102 @@ void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
 
 // outputVTK {{{
 void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsigned int var){
+  MPICommunicator *comm = MPICommunicator::getInstance();
   FILE *f;
-  f = fopen(name, "w");
+  int rank = comm->getRank();
+  int size = comm->getWorldSize();
+  int root = comm->getRootRank();
+  // If we have more than one rank, we need multiple files.
+  std::stringstream ss;
+  ss << name;
+  ss << ".vts";
+  if(size > 1){
+    ss << "." << rank;
+  }
+  char newname[256];
+  strcpy(newname, ss.str().c_str());
+  f = fopen(newname, "w");
   
   unsigned int nb = domain->getGhostPoints();
   const Grid *grid = domain->getGrid();
   double **data = (*fieldData)[field]->getData();
   auto points = grid->getPoints();
 
+  unsigned int domsz[2] = {0};
+  domsz[0] = domain->getSize()[0];
+  domsz[1] = domain->getSize()[1];
   unsigned int shp[2] = {0};
   shp[0] = grid->getSize()[0];
   shp[1] = grid->getSize()[1];
 
-  output::writeVTKHeader(f,points[0], points[1], shp, nb);
+  bool polar = domain->getCoordinates() == Domain::POLAR;
+
+  output::writeVTKHeader(f, domsz, domain->getPointBounds());
   output::writeVTKTime(f, t);
   fprintf(f,"      <PointData Scalars=\"%s\">\n",varname);
   output::writeVTKScalar(f, varname, data[var], shp, nb);
   fprintf(f,"      </PointData>\n");
-  output::writeVTKPoints(f, points[0], points[1], shp, nb, domain->getCoordinates() == Domain::POLAR);
+  output::writeVTKPoints(f, points[0], points[1], shp, nb, polar);
   output::writeVTKFooter(f);
 
   fclose(f);
+
+  // If we have multiple ranks, we need a PVTS file as well.
+  if(size > 1){
+    if(rank == root){
+      MPI_Request *request = new MPI_Request[size];
+      MPI_Status *status = new MPI_Status[size];
+      unsigned int data[4] = {0};
+      pair2<unsigned int> bnds;
+      ss.str(std::string());
+      ss << name;
+      ss << ".pvts";
+
+      strcpy(newname, ss.str().c_str());
+      f = fopen(newname, "w");
+
+      output::writePVTKHeader(f, domsz);
+      fprintf(f,"    <PPointData Scalars=\"%s\">\n",varname);
+      output::writePVTKScalar(f, varname);
+      fprintf(f,"    </PPointData>\n");
+      output::writePVTKPoints(f);
+      for(int i = 0; i < size; i++){
+        ss.str(std::string());
+        ss << name;
+        ss << ".vts." << i;
+        strcpy(newname, ss.str().c_str());
+        if(i == rank){
+          output::writePVTKPiece(f, newname, domain->getPointBounds());
+        }
+        else{
+          // Get the point bounds from the other processors.
+          MPI_Irecv(data, 4, MPI_UNSIGNED, i, i, MPI_COMM_WORLD, &request[i]);
+          MPI_Wait(&request[i],&status[i]);
+          bnds[0][0] = data[0];
+          bnds[0][1] = data[1];
+          bnds[1][0] = data[2];
+          bnds[1][1] = data[3];
+          output::writePVTKPiece(f, newname, bnds);
+        }
+      }
+      output::writePVTKFooter(f);
+
+      fclose(f);
+      delete[] status;
+      delete[] request;
+    }
+    else{
+      unsigned int data[4] = {0};
+      auto bnds = domain->getPointBounds();
+      data[0] = bnds[0][0];
+      data[1] = bnds[0][1];
+      data[2] = bnds[1][0];
+      data[3] = bnds[1][1];
+      MPI_Request request;
+      MPI_Status status;
+      MPI_Isend(data, 4, MPI_UNSIGNED, root, rank, MPI_COMM_WORLD, &request);
+      MPI_Wait(&request, &status);
+    }
+  }
 }
 // }}}

@@ -26,14 +26,22 @@ void output::outputCSV(const char *name, const double *v, const double *x, const
   fclose(f);
 }
 
-void output::writeVTKHeader(FILE *f, const double *x, const double *y, const unsigned int shp[2],
-                            unsigned int ghost){
+void output::writeVTKHeader(FILE *f, const unsigned int shp[2], const pair2<unsigned int>& bnds){
+  unsigned int nx, ny, nxst, nxend, nyst, nyend;
+  //nx = shp[0] - 2*ghost - 1;
+  //ny = shp[1] - 2*ghost - 1;
+  nx = shp[0] - 1;
+  ny = shp[1] - 1;
+  nxst = bnds[0][0];
+  nxend = bnds[0][1];
+  nyst = bnds[1][0];
+  nyend = bnds[1][1];
   fprintf(f,"<?xml version=\"1.0\"?>\n");
   fprintf(f,"<VTKFile type=\"StructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
   fprintf(f,"  <StructuredGrid WholeExtent=\"%d %d %d %d %d %d\">\n",
-    0, shp[0] - 2*ghost - 1, 0, shp[1] - 2*ghost - 1, 0, 0);
+    0, nx, 0, ny, 0, 0);
   fprintf(f,"    <Piece Extent=\"%d %d %d %d %d %d\">\n",
-    0, shp[0] - 2*ghost - 1, 0, shp[1] - 2*ghost - 1, 0, 0);
+    nxst, nxend, nyst, nyend, 0, 0);
 }
 
 void output::writeVTKTime(FILE *f, double time){
@@ -97,5 +105,32 @@ void output::writeVTKPoints(FILE *f, const double *x, const double *y, const uns
 void output::writeVTKFooter(FILE *f){
   fprintf(f,"    </Piece>\n");
   fprintf(f,"  </StructuredGrid>\n");
+  fprintf(f,"</VTKFile>\n");
+}
+
+void output::writePVTKHeader(FILE *f, const unsigned int shp[2]){
+  fprintf(f,"<?xml version=\"1.0\"?>\n");
+  fprintf(f,"<VTKFile type=\"PStructuredGrid\" version=\"0.1\" byte_order=\"LittleEndian\">\n");
+  fprintf(f,"  <PStructuredGrid WholeExtent=\"%d %d %d %d %d %d\" GhostLevel=\"0\">\n",
+    0, shp[0]-1, 0, shp[1]-1, 0, 0);
+}
+
+void output::writePVTKScalar(FILE *f, const char* name){
+  fprintf(f,"      <PDataArray type=\"Float64\" Name=\"%s\"/>\n",name);
+}
+
+void output::writePVTKPoints(FILE *f){
+  fprintf(f,"    <PPoints>\n");
+  fprintf(f,"      <PDataArray type=\"Float64\" NumberOfComponents=\"3\"/>\n");
+  fprintf(f,"    </PPoints>\n");
+}
+
+void output::writePVTKPiece(FILE *f, const char* name, const pair2<unsigned int>& bnds){
+  fprintf(f,"    <Piece Extent=\"%d %d %d %d %d %d\" Source=\"%s\"/>\n",
+    bnds[0][0], bnds[0][1], bnds[1][0], bnds[1][1], 0, 0, name);
+}
+
+void output::writePVTKFooter(FILE *f){
+  fprintf(f,"  </PStructuredGrid>\n");
   fprintf(f,"</VTKFile>\n");
 }

@@ -50,7 +50,12 @@ class Domain{
     /**
      * This processor's boundaries in point indices.
      */
-    pair2<int> pointBounds;
+    pair2<unsigned int> pointBounds;
+
+    /**
+     * The total number of points on the Domain.
+     */
+    unsigned int size[2];
 
     /**
      * The communication partners for this processor. An entry of -1 indicates
@@ -160,6 +165,13 @@ class Domain{
     }
 
     /**
+     * Get the point boundaries for this specific processor.
+     */
+    inline const pair2<unsigned int>& getPointBounds() const{
+      return pointBounds;
+    }
+
+    /**
      * Check if the Domain on this processor has a physical boundary.
      */
     inline bool hasBoundary(Boundary b) const{
@@ -178,6 +190,13 @@ class Domain{
      */
     inline bool isPeriodic() const{
       return periodic;
+    }
+
+    /**
+     * Get the total number of points on the Domain.
+     */
+    inline const unsigned int* getSize() const{
+      return size;
     }
     // }}}
 

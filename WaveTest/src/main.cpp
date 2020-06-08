@@ -65,14 +65,16 @@ int main(int argc, char *argv[]){
   double dt = domain.getCFL()*fmin(dx[0], dx[1]);
   unsigned int M = (tf - ti)/dt;
 
-  ode.dumpField("Evolution","phi00000.csv", 0, 0);
+  //ode.dumpField("Evolution","phi00000.csv", 0, 0);
+  ode.outputVTK("Evolution","phi00000", "Phi", 0, 0);
   for(unsigned int i = 0; i < M; i++){
     double t = (i + 1)*dt;
     ode.evolveStep(dt);
 
     char buffer[12];
-    sprintf(buffer, "phi%05d.csv",i+1);
-    ode.dumpField("Evolution",buffer, t, 0);
+    sprintf(buffer, "phi%05d",i+1);
+    //ode.dumpField("Evolution",buffer, t, 0);
+    ode.outputVTK("Evolution",buffer, "Phi", 0, 0);
   }
 
   result = comm->cleanup();
