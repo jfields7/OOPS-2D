@@ -1,6 +1,7 @@
 #include <output.h>
 #include <cstdio>
 #include <cmath>
+#include <base64.h>
 
 void output::outputCSV(const char *name, const double *v, const double *x, const double *y, 
                        const unsigned int shp[2], double time, unsigned int ghost, bool polar){
@@ -46,29 +47,29 @@ void output::writeVTKHeader(FILE *f, const unsigned int shp[2], const pair2<unsi
 
 void output::writeVTKTime(FILE *f, double time){
   fprintf(f,"      <FieldData>\n");
-  //fprintf(f,"        <DataArray type=\"Float64\" Name=\"Time\" NumberOfTuples=\"1\" format=\"binary\">");
-  //fwrite(&time,sizeof(double),1,f);
-  //fprintf(f,"</DataArray>\n");
-  fprintf(f,"        <DataArray type=\"Float64\" Name=\"Time\" NumberOfTuples=\"1\" format=\"ascii\">\n");
-  fprintf(f,"          %g\n",time);
-  fprintf(f,"        </DataArray>\n");
+  fprintf(f,"        <DataArray type=\"Float64\" Name=\"Time\" NumberOfTuples=\"1\" format=\"binary\">");
+  fprintf(f,"%s",Base64::encode(time).c_str());
+  fprintf(f,"</DataArray>\n");
+  //fprintf(f,"        <DataArray type=\"Float64\" Name=\"Time\" NumberOfTuples=\"1\" format=\"ascii\">\n");
+  //fprintf(f,"          %g\n",time);
+  //fprintf(f,"        </DataArray>\n");
   fprintf(f,"      </FieldData>\n");
 }
 
 void output::writeVTKScalar(FILE *f, const char *name, const double *v, const unsigned int shp[2],
                             unsigned int ghost){
-  //fprintf(f,"        <DataArray type=\"Float64\" Name=\"%s\" format=\"binary\">",name);
+  //fprintf(f,"        <DataArray type=\"Float64\" Name=\"%s\" format=\"binary\">\n",name);
   fprintf(f,"        <DataArray type=\"Float64\" Name=\"%s\" format=\"ascii\">\n",name);
   unsigned int pp;
   for(unsigned int j = ghost; j < shp[1] - ghost; j++){
     for(unsigned int i = ghost; i < shp[0] - ghost; i++){
       pp = i + shp[0]*j;
-      //fwrite(&v[pp], sizeof(double), 1, f);
       fprintf(f,"%g ", v[pp]);
+      //fprintf(f,"%s", Base64::encode(v[pp]).c_str());
     }
   }
-  fprintf(f,"        </DataArray>\n");
-  //fprintf(f,"<DataArray>\n");
+  fprintf(f,"\n        </DataArray>\n");
+  //fprintf(f,"</DataArray>\n");
 }
 
 void output::writeVTKPoints(FILE *f, const double *x, const double *y, const unsigned int shp[2],

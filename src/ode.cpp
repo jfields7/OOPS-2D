@@ -33,6 +33,13 @@ Result ODE::addField(std::string name, unsigned int eqs, bool isEvolved, bool is
   else{
     unsigned int stages = (isEvolved ? solver->getNStages() : 0);
     fieldList.insert({name, FieldInfo(name, eqs, stages, isComm)});
+    fieldOutput.insert({name,std::vector<varPair>()});
+    std::stringstream ss;
+    for(unsigned int i = 0; i < eqs; i++){
+      ss.str(std::string(""));
+      ss << name << "::var" << i;
+      fieldOutput[name].push_back(std::make_pair(false,ss.str()));
+    }
   }
 
   return SUCCESS;
@@ -46,6 +53,7 @@ Result ODE::removeField(std::string name){
   }
   else{
     fieldList.erase(name);
+    fieldOutput.erase(name);
   }
   return SUCCESS;
 }
@@ -451,7 +459,7 @@ void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
 // }}}
 
 // outputVTK {{{
-void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsigned int var){
+void ODE::outputVTK(char* name, double t){
   MPICommunicator *comm = MPICommunicator::getInstance();
   FILE *f;
   int rank = comm->getRank();
@@ -470,7 +478,6 @@ void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsi
   
   unsigned int nb = domain->getGhostPoints();
   const Grid *grid = domain->getGrid();
-  double **data = (*fieldData)[field]->getData();
   auto points = grid->getPoints();
 
   unsigned int domsz[2] = {0};
@@ -484,8 +491,29 @@ void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsi
 
   output::writeVTKHeader(f, domsz, domain->getPointBounds());
   output::writeVTKTime(f, t);
-  fprintf(f,"      <PointData Scalars=\"%s\">\n",varname);
-  output::writeVTKScalar(f, varname, data[var], shp, nb);
+  ss.str(std::string(""));
+  char varnames[256];
+  for(auto field : fieldList){
+    const FieldInfo& info = field.second;
+    for(unsigned int i = 0; i < info.nEqs; i++){
+      const varPair& v = fieldOutput[field.first][i];
+      if(v.first == true){
+        ss << v.second.c_str() << " ";
+      }
+    }
+  }
+  strcpy(varnames, ss.str().c_str());
+  fprintf(f,"      <PointData Scalars=\"%s\">\n",varnames);
+  for(auto field : fieldList){
+    const FieldInfo& info = field.second;
+    double **data = (*fieldData)[field.first]->getData();
+    for(unsigned int i = 0; i < info.nEqs; i++){
+      const varPair& v = fieldOutput[field.first][i];
+      if(v.first == true){
+        output::writeVTKScalar(f, v.second.c_str(), data[i], shp, nb);
+      }
+    }
+  }
   fprintf(f,"      </PointData>\n");
   output::writeVTKPoints(f, points[0], points[1], shp, nb, polar);
   output::writeVTKFooter(f);
@@ -507,8 +535,16 @@ void ODE::outputVTK(std::string field, char* name, char* varname, double t, unsi
       f = fopen(newname, "w");
 
       output::writePVTKHeader(f, domsz);
-      fprintf(f,"    <PPointData Scalars=\"%s\">\n",varname);
-      output::writePVTKScalar(f, varname);
+      fprintf(f,"    <PPointData Scalars=\"%s\">\n",varnames);
+      for(auto field : fieldList){
+        const FieldInfo& info = field.second;
+        for(unsigned int i = 0; i < info.nEqs; i++){
+          const varPair& v = fieldOutput[field.first][i];
+          if(v.first == true){
+            output::writePVTKScalar(f, v.second.c_str());
+          }
+        }
+      }
       fprintf(f,"    </PPointData>\n");
       output::writePVTKPoints(f);
       for(int i = 0; i < size; i++){

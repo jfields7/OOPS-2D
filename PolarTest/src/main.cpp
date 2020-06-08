@@ -58,6 +58,8 @@ int main(int argc, char *argv[]){
   Wave ode = Wave(&domain, &rk4);
   ode.setParameters(&params);
   ode.initData();
+  ode.setVariableOutput("Evolution",0,true);
+  ode.setVariableOutput("Evolution",1,true);
 
   double ti = params.getTimeStart();
   double tf = params.getTimeEnd();
@@ -66,7 +68,7 @@ int main(int argc, char *argv[]){
   unsigned int M = (tf - ti)/dt;
 
   //ode.dumpField("Evolution","phi00000.csv", 0, 0);
-  ode.outputVTK("Evolution","phi00000","Phi", 0, 0);
+  ode.outputVTK("phi00000", 0);
   for(unsigned int i = 0; i < M; i++){
     double t = (i + 1)*dt;
     ode.evolveStep(dt);
@@ -74,7 +76,7 @@ int main(int argc, char *argv[]){
     char buffer[12];
     sprintf(buffer, "phi%05d",i+1);
     //ode.dumpField("Evolution",buffer, t, 0);
-    ode.outputVTK("Evolution",buffer,"Phi", t, 0);
+    ode.outputVTK(buffer, t);
   }
 
   result = comm->cleanup();

@@ -63,6 +63,7 @@ set(OOPS_INCLUDE_FILES
     include/solver.h
     include/output.h
     include/rk4.h
+    include/base64.h
    )
 
 set(OOPS_SOURCE_FILES
@@ -76,6 +77,7 @@ set(OOPS_SOURCE_FILES
     src/solverdata.cpp
     src/output.cpp
     src/rk4.cpp
+    src/base64.cpp
    )
 
 add_library(oops2d ${OOPS_INCLUDE_FILES} ${OOPS_SOURCE_FILES})

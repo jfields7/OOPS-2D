@@ -69,6 +69,11 @@ class ODE{
     std::shared_ptr<FieldMap> fieldData;
 
     /**
+     * Which variables should be saved as output.
+     */
+    std::map<std::string, std::vector<varPair>> fieldOutput;
+
+    /**
      * The solver to use for this system of ODEs.
      */
     Solver *solver;
@@ -186,6 +191,28 @@ class ODE{
     Result setSolver(Solver *solver);
 
     /**
+     * Enable output for a particular variable in a particular field.
+     * @param field - The name of the field this variable belongs to.
+     * @param var - The index for the variable.
+     * @param output - Whether or not to output this variable.
+     * @throws std::out_of_range if the field or variable does not exist.
+     */
+    inline void setVariableOutput(std::string field, unsigned int var, bool output){
+      fieldOutput.at(field).at(var).first = output;
+    }
+
+    /**
+     * Set the name for a particular variable.
+     * @param field - The name of the field this variable belongs to.
+     * @param var - The index for the variable.
+     * @param name - The name to associate with the variable.
+     * @throws std::out_of_range if the field or variable does not exist.
+     */
+    inline void setVariableName(std::string field, unsigned int var, std::string name){
+      fieldOutput.at(field).at(var).second = name;
+    }
+
+    /**
      * The evolution function for a single step. We make this virtual because
      * different ODEs might require different things to happen in between each
      * stage of the solver. A default version is included that simply loops over
@@ -253,7 +280,7 @@ class ODE{
     /**
      * Write to a VTK file.
      */
-    void outputVTK(std::string field, char* name, char* varname, double t, unsigned int var);
+    void outputVTK(char* name, double t);
 };
 
 #endif

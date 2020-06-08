@@ -8,6 +8,8 @@ Wave::Wave(Domain* d, Solver* s) : ODE(2, d, s){
   params = nullptr;
 
   addField("Evolution", nEqs, true, true);
+  setVariableName("Evolution",0,"U_PHI");
+  setVariableName("Evolution",1,"U_PI");
 
   reallocateData();
 }
