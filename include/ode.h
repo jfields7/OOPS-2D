@@ -264,13 +264,17 @@ class ODE{
      * Get the evolution time.
      * @returns the current time in the evolution.
      */
-    double getTime();
+    inline double getTime(){
+      return time;
+    }
 
     /**
      * Set the evolution time.
      * @param t - The evolution time that the ODE should be at.
      */
-    void setTime(double t);
+    inline void setTime(double t){
+      time = t;
+    }
 
     /**
      * Dump a field to a .csv file.
