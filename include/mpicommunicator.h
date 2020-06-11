@@ -70,6 +70,16 @@ class MPICommunicator{
     //Result getData(double *buffer, int size, int src);
 
     /**
+     * Find the maximum across all processors.
+     */
+    Result findMax(double in, double &out);
+
+    /**
+     * Find the minimum across all processors.
+     */
+    Result findMin(double in, double &out);
+
+    /**
      * Get the current MPI rank.
      * @return the rank of this processor.
      */

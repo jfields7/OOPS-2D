@@ -26,6 +26,9 @@ class WaveParameters : public Parameters {
       mTimeStart = 0.0;
       mTimeEnd = 1.0;
       mGhostPoints = 3;
+      mMinCFL = 0.1;
+      mMaxCFL = 0.75;
+      mErrorTolerance = 1e-06;
     }
 
     inline void setInitialConditions(InitialConditions val){
@@ -116,6 +119,30 @@ class WaveParameters : public Parameters {
       return mGhostPoints;
     }
 
+    inline void setMinCFL(double MinCFL){
+      mMinCFL = MinCFL;
+    }
+
+    inline double getMinCFL(){
+      return mMinCFL;
+    }
+
+    inline void setMaxCFL(double MaxCFL){
+      mMaxCFL = MaxCFL;
+    }
+
+    inline double getMaxCFL(){
+      return mMaxCFL;
+    }
+
+    inline void setErrorTolerance(double ErrorTolerance){
+      mErrorTolerance = ErrorTolerance;
+    }
+
+    inline double getErrorTolerance(){
+      return mErrorTolerance;
+    }
+
     Result broadcastParameters();
 
   private:
@@ -130,6 +157,9 @@ class WaveParameters : public Parameters {
     double mTimeStart;
     double mTimeEnd;
     int mGhostPoints;
+    double mMinCFL;
+    double mMaxCFL;
+    double mErrorTolerance;
 };
 
 #endif

@@ -134,5 +134,35 @@ void WaveParser::updateParameters(string fname, Parameters* params){
     }
   }
 
+  if(reader.hasParameter(string("Wave"),string("MinCFL"))){
+    double result = reader.readAsDouble(string("Wave"),string("MinCFL"));
+    if(result <= 1.000000e+00 && result >= 1.000000e-02){
+      pars->setMinCFL(result);
+    }
+    else{
+      cout << "Parameter MinCFL out of range.\n";
+    }
+  }
+
+  if(reader.hasParameter(string("Wave"),string("MaxCFL"))){
+    double result = reader.readAsDouble(string("Wave"),string("MaxCFL"));
+    if(result <= 1.000000e+00 && result >= 1.000000e-02){
+      pars->setMaxCFL(result);
+    }
+    else{
+      cout << "Parameter MaxCFL out of range.\n";
+    }
+  }
+
+  if(reader.hasParameter(string("Wave"),string("ErrorTolerance"))){
+    double result = reader.readAsDouble(string("Wave"),string("ErrorTolerance"));
+    if(result <= 1.000000e+00 && result >= 1.000000e-16){
+      pars->setErrorTolerance(result);
+    }
+    else{
+      cout << "Parameter ErrorTolerance out of range.\n";
+    }
+  }
+
 }
 

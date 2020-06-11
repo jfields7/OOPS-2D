@@ -30,4 +30,10 @@ Result WaveParameters::broadcastParameters(){
 
   comm->broadcastParameter(&mGhostPoints);
 
+  comm->broadcastParameter(&mMinCFL);
+
+  comm->broadcastParameter(&mMaxCFL);
+
+  comm->broadcastParameter(&mErrorTolerance);
+
   return SUCCESS;}

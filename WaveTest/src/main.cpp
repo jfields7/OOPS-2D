@@ -2,7 +2,8 @@
 #include <waveparser.h>
 #include <waveparameters.h>
 #include <wave.h>
-#include <rk4.h>
+//#include <rk4.h>
+#include <rkck.h>
 #include <iostream>
 #include <cstdio>
 #include <cmath>
@@ -54,8 +55,10 @@ int main(int argc, char *argv[]){
   }
 
   // Set up our ODE system.
-  RK4 rk4 = RK4();
-  Wave ode = Wave(&domain, &rk4);
+  //RK4 rk4 = RK4();
+  RKCK rkck = RKCK();
+  rkck.setErrorTolerance(params.getErrorTolerance());
+  Wave ode = Wave(&domain, &rkck);
   ode.setParameters(&params);
   ode.initData();
   ode.setVariableOutput("Evolution",0,true);
@@ -64,19 +67,31 @@ int main(int argc, char *argv[]){
   double ti = params.getTimeStart();
   double tf = params.getTimeEnd();
   auto dx = domain.getGrid()->getSpacing();
-  double dt = domain.getCFL()*fmin(dx[0], dx[1]);
+  double spacing = fmin(dx[0], dx[1]);
+  double mindt = spacing*params.getMinCFL();
+  double maxdt = spacing*params.getMaxCFL();
+  double dt = domain.getCFL()*spacing;
   unsigned int M = (tf - ti)/dt;
 
   //ode.dumpField("Evolution","phi00000.csv", 0, 0);
   ode.outputVTK("phi00000", 0);
-  for(unsigned int i = 0; i < M; i++){
-    double t = (i + 1)*dt;
+  //for(unsigned int i = 0; i < M; i++){
+  unsigned int i = 0;
+  for(double t = ti; t < tf; t+=dt){
+    if(t > ti){
+      //dt = fmin(maxdt, fmax(mindt, rkck.getRecommendedStepSize()));
+      comm->findMin(rkck.getRecommendedStepSize(),dt);
+      dt = fmin(maxdt, fmax(mindt, dt));
+    }
+    //double t = (i + 1)*dt;
     ode.evolveStep(dt);
 
     char buffer[12];
     sprintf(buffer, "phi%05d",i+1);
     //ode.dumpField("Evolution",buffer, t, 0);
     ode.outputVTK(buffer, t);
+    printf("Current step size: %g\n", dt);
+    i++;
   }
 
   result = comm->cleanup();

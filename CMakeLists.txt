@@ -63,6 +63,7 @@ set(OOPS_INCLUDE_FILES
     include/solver.h
     include/output.h
     include/rk4.h
+    include/rkck.h
     include/base64.h
    )
 
@@ -77,6 +78,7 @@ set(OOPS_SOURCE_FILES
     src/solverdata.cpp
     src/output.cpp
     src/rk4.cpp
+    src/rkck.cpp
     src/base64.cpp
    )
 

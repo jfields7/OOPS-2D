@@ -142,3 +142,27 @@ Result MPICommunicator::sendData(double *buffer, int size, int dest){
 }
 */
 // }}}
+
+// findMax {{{
+Result MPICommunicator::findMax(double in, double &out){
+  if(!isInitialized){
+    return UNINITIALIZED;
+  }
+
+  MPI_Allreduce(&in, &out, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+
+  return SUCCESS;
+}
+// }}}
+
+// findMin {{{
+Result MPICommunicator::findMin(double in, double &out){
+  if(!isInitialized){
+    return UNINITIALIZED;
+  }
+
+  MPI_Allreduce(&in, &out, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+  
+  return SUCCESS;
+}
+// }}}
