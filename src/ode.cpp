@@ -237,7 +237,7 @@ void ODE::performGridExchange(){
         }
         if(commPartners[d][1] != -1){
           for(unsigned int j = 0; j < size; j++){
-            for(unsigned int i = shp[d] - 2*nb - 1; i < shp[d] - nb; i++){
+            for(unsigned int i = shp[d] - 2*nb - 1; i < shp[d] - nb - 1; i++){
               unsigned int pp = grid->getIndex(i, j, d);
               unsigned int pb = (i - shp[d] + 2*nb + 1) + nb*j;
               sendBuffer[1 + 2*d][offset + pb] = data[m][pp];
