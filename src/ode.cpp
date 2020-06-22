@@ -26,13 +26,13 @@ Result ODE::reallocateData(){
 // }}}
 
 // addField {{{
-Result ODE::addField(std::string name, unsigned int eqs, bool isEvolved, bool isComm){
+Result ODE::addField(std::string name, unsigned int eqs, bool isEvolved, bool isComm, unsigned int lines){
   if(fieldList.find(name) != fieldList.end()){
     return FIELD_EXISTS;
   }
   else{
     unsigned int stages = (isEvolved ? solver->getNStages() : 0);
-    fieldList.insert({name, FieldInfo(name, eqs, stages, isComm)});
+    fieldList.insert({name, FieldInfo(name, eqs, stages, lines, isComm)});
     fieldOutput.insert({name,std::vector<varPair>()});
     std::stringstream ss;
     for(unsigned int i = 0; i < eqs; i++){
@@ -121,20 +121,6 @@ Result ODE::evolveStep(double dt){
     doAfterBoundaries();
   }
   
-  /*auto evol = fieldData->getSolverField("Evolution");
-  // Loop over every stage for the solver.
-  for(unsigned int i = 0; i < solver->getNStages(); i++){
-    solver->setStageTime(old_time, time, dt, i);
-    solver->calcStage(this,evol->getData(), evol->getIntermediateData(), (evol->getWorkData())[i],
-                      evol->getGrid(), dt, i);
-
-    doAfterStage(true);
-    performGridExchange(true);
-    doAfterExchange(true);
-    applyBoundaries(true);
-    doAfterBoundaries(true);
-  }*/
-
   time = old_time + dt;
   //solver->combineStages(evol->getWorkData(), evol->getData(), evol->getGrid(), dt, nEqs);
   solver->combineStages(fieldData, dt);

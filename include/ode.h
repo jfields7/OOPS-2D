@@ -22,17 +22,20 @@ struct FieldInfo{
   std::string name;
   unsigned int nEqs;
   unsigned int nStages;
+  unsigned int nLines;
   bool isComm;
-  FieldInfo(std::string n, unsigned int eqs, unsigned int stages, bool comm){
+  FieldInfo(std::string n, unsigned int eqs, unsigned int stages, unsigned int lines, bool comm){
     name = n;
     nEqs = eqs;
     nStages = stages;
+    nLines = lines;
     isComm = comm;
   }
   FieldInfo(const FieldInfo& other){
     name = std::string(other.name);
     nEqs = other.nEqs;
     nStages = other.nStages;
+    nLines = other.nLines;
     isComm = other.isComm;
   }
 };
@@ -133,7 +136,7 @@ class ODE{
      * Add a new field to the ODE object. The reallocateData() function
      * needs to be called for any memory to be updated.
      */
-    Result addField(std::string name, unsigned int neqs, bool isEvolved, bool isComm);
+    Result addField(std::string name, unsigned int neqs, bool isEvolved, bool isComm, unsigned int lines=0);
 
     /**
      * Remove a field from the ODE object.

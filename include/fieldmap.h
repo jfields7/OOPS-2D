@@ -66,7 +66,7 @@ class FieldMap{
      * @param stages An optional parameter (0 by default) describing the
      *        number of stages the SolverData object needs.
      */
-    void addField(std::string name, unsigned int nEqs, unsigned int stages);
+    void addField(std::string name, unsigned int nEqs, unsigned int stages, unsigned int lines=0);
 
     /**
      * Remove a field from the map.

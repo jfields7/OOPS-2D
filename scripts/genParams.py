@@ -251,5 +251,10 @@ for i in range(1,len(sys.argv)):
   except json.JSONDecodeError as err:
     print("There was an error decoding " + sys.argv[i] + ":");
     print(" " + err.msg + " at line " + str(err.lineno))
+  except KeyError as err:
+    print("There was an error in " +sys.argv[i] + ":");
+    print("  Key Error: " + str(err));
   except:
     print("Could not read file " + sys.argv[i] + ".");
+    print("Unexpected error:", sys.exc_info()[0])
+    raise

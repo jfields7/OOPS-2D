@@ -1,4 +1,3 @@
 // the configured options and settings for OOPS
 #define OOPS_VERSION_MAJOR @OOPS_VERSION_MAJOR@
 #define OOPS_VERSION_MINOR @OOPS_VERSION_MINOR@
-#cmakedefine USE_SDF

@@ -3,7 +3,8 @@
 #include <iostream>
 
 // Constructor {{{
-SolverData::SolverData(unsigned int eqCount, unsigned int nStages, const Grid& grid) : ODEData(eqCount, grid){
+SolverData::SolverData(unsigned int eqCount, unsigned int nStages, const Grid& grid, unsigned int lines) : 
+            ODEData(eqCount, grid, lines){
   this->nStages = nStages;
   unsigned int shp[2] = {0};
   shp[0] = grid.getSize()[0];

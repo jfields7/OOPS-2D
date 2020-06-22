@@ -3,8 +3,9 @@
 #include <iostream>
 
 // ODEData {{{
-ODEData::ODEData(unsigned int eqCount, const Grid& grid) : mGrid(grid){
+ODEData::ODEData(unsigned int eqCount, const Grid& grid, unsigned int lines) : mGrid(grid){
   nEq = eqCount;
+  this->lines = lines;
 
   unsigned int shp[2] = {0};
   shp[0] = grid.getSize()[0];
@@ -13,12 +14,19 @@ ODEData::ODEData(unsigned int eqCount, const Grid& grid) : mGrid(grid){
   unsigned int nmax = (shp[0] > shp[1]) ? shp[0] : shp[1];
 
   // Try to allocate memory for the array.
+  if(lines > 0){
+    line = new double**[lines];
+  }
   try{
     data = new double*[eqCount];
-    line = new double*[eqCount];
+    for(unsigned int i = 0; i < lines; i++){
+      line[i] = new double*[eqCount];
+      for(unsigned int m = 0; m < eqCount; m++){
+        line[i][m] = new double[nmax];
+      }
+    }
     for(unsigned int m = 0; m < eqCount; m++){
       data[m] = new double[n];
-      line[m] = new double[nmax];
     }
   }
   catch(std::bad_alloc& ba){
@@ -40,6 +48,11 @@ ODEData::ODEData(const ODEData& other) : mGrid(other.getGrid()){
 ODEData::~ODEData(){
   for(unsigned int i = 0; i < nEq; i++){
     delete[] data[i];
+  }
+  for(unsigned int i = 0; i < lines; i++){
+    for(unsigned int m = 0; m < nEq; m++){
+      delete[] line[i][m];
+    }
     delete[] line[i];
   }
   delete[] data;

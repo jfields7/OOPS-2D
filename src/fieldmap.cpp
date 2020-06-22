@@ -16,7 +16,7 @@ FieldMap::FieldMap(const Grid* grid) : mGrid(*grid){
 FieldMap::FieldMap(const Grid* grid, std::map<std::string, FieldInfo>& fields) : mGrid(*grid){
   for(auto i : fields){
     FieldInfo info = i.second;
-    addField(info.name, info.nEqs, info.nStages);
+    addField(info.name, info.nEqs, info.nStages, info.nLines);
   }
 }
 // }}}
@@ -28,7 +28,7 @@ FieldMap::~FieldMap(){
 // }}}
 
 // addField {{{
-void FieldMap::addField(std::string name, unsigned int nEqs, unsigned int stages=0){
+void FieldMap::addField(std::string name, unsigned int nEqs, unsigned int stages, unsigned int lines){
   // FIXME: This should really throw an exception if the field already exists.
   if(hasField(name)){
     return;
@@ -37,13 +37,13 @@ void FieldMap::addField(std::string name, unsigned int nEqs, unsigned int stages
   if(stages > 0){
     //fields[name] = SolverData(nEqs, stages, mGrid);
     //fields.emplace(name, std::shared_ptr<SolverData>(new SolverData(nEqs, stages, mGrid)));
-    solverFields.emplace(name, std::make_shared<SolverData>(nEqs, stages, mGrid));
+    solverFields.emplace(name, std::make_shared<SolverData>(nEqs, stages, mGrid, lines));
     fields.insert({name, solverFields.at(name)});
   }
   else{
     //fields.emplace(name, nEqs, mGrid);
     //fields.emplace(name, std::shared_ptr<ODEData>(new ODEData(nEqs, mGrid)));
-    fields.emplace(name, std::make_shared<ODEData>(nEqs, mGrid));
+    fields.emplace(name, std::make_shared<ODEData>(nEqs, mGrid, lines));
   }
 }
 // }}}

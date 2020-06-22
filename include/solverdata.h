@@ -41,8 +41,9 @@ class SolverData : public ODEData{
    * @param eqCount - the number of equations in the system.
    * @param stages  - the number of stages used by the solver.
    * @param grid    - the Grid this data belongs to.
+   * @param lines   - the number of extra lines to allocate.
    */
-  SolverData(unsigned int eqCount, unsigned int stages, const Grid& grid);
+  SolverData(unsigned int eqCount, unsigned int stages, const Grid& grid, unsigned int lines=0);
 
   /**
    * A destructor for SolverData that deletes all the memory that was allocated.
