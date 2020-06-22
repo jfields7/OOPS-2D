@@ -55,6 +55,7 @@ ODEData::~ODEData(){
     }
     delete[] line[i];
   }
+  delete[] line;
   delete[] data;
 }
 // }}}
