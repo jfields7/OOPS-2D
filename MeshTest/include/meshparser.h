@@ -12,7 +12,7 @@ class MeshParser : ParamParser{
 
     virtual ~MeshParser(){}
 
-    virtual void updateParameters(std::string fname, Parameters* params);
+    virtual bool updateParameters(std::string fname, Parameters* params);
 };
 
 #endif

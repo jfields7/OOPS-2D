@@ -27,6 +27,9 @@ ParamReader::ParamResult ParamReader::readFile(string fname){
   catch(ifstream::failure &e){
     return BAD_FILENAME;
   }
+  if(!file.is_open()){
+    return BAD_FILENAME;
+  }
 
   string section;
 
