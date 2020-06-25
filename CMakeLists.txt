@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(PythonInterp 3.0 REQUIRED)
 find_package(MPI REQUIRED)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall -Wextra")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
 # Set a default build type.
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -24,6 +24,15 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 option(BUILD_TESTS "Compile OOPS unit tests" OFF)
+
+#if(NOT USE_AVX)
+#  set(USE_AVX "None" CACHE
+#      STRING "Compile with AVX. This usually speeds up code, but it may not be available on all machines." FORCE)
+#  set_property(CACHE USE_AVX PROPERTY STRINGS
+#    "None" "AVX" "AVX2" "AVX-512")
+#endif()
+
+option(USE_INTRINSICS "On GNU-like and Intel compilers, use processor-specific instruction sets to improve performance." OFF)
 
 # Configure a header file that will pass on our settings.
 configure_file(${PROJECT_SOURCE_DIR}/include/oopsconfig.h.in ${PROJECT_SOURCE_DIR}/include/oopsconfig.h)
@@ -44,9 +53,44 @@ set(EXTRA_LIBS
     ${MPI_LIBRARIES}
    )
 
-if(USE_SDF)
-  list(APPEND EXTRA_LIBS bbhutil)
+if(USE_INTRINSICS)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-march=native)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    if(UNIX)
+      add_compile_options(-xHost)
+    else()
+      add_compile_options(/QxHost)
+    endif()
+  else()
+    message(STATUS "USE_INTRINSICS is not set up for your compiler and therefore does nothing.")
+  endif()
 endif()
+
+# Add the AVX flag for the different compilers.
+#if(NOT "${USE_AVX}" STREQUAL "None")
+#  if("${USE_AVX}" STREQUAL "AVX")
+#    if(MSVC)
+#      add_compile_options(/arch:AVX)
+#    else()
+#      add_compile_options(-mavx)
+#    endif()
+#  endif()
+#  if("${USE_AVX}" STREQUAL "AVX2")
+#    if(MSVC)
+#      add_compile_options(/arch:AVX2)
+#    else()
+#      add_compile_options(-mavx2)
+#    endif()
+#  endif()
+#  if("${USE_AVX}" STREQUAL "AVX512")
+#    if(MSVC)
+#      add_compile_options(/arch:AVX512)
+#    else()
+#      add_compile_options(-mavx512f)
+#    endif()
+#  endif()
+#endif()
 
 set(OOPS_INCLUDE_FILES
     include/mpicommunicator.h
