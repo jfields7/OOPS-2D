@@ -48,8 +48,12 @@ ParamReader::ParamResult ParamReader::readFile(string fname){
       continue;
     }
 
-    // Treat # as a comment.
+    // Treat # and ; as comments.
     size_t pos = str.find('#');
+    if(pos != string::npos){
+      str = str.substr(0,pos);
+    }
+    pos = str.find(';');
     if(pos != string::npos){
       str = str.substr(0,pos);
     }
@@ -127,18 +131,15 @@ ParamReader::ParamResult ParamReader::parseParameter(std::string &str, std::stri
       return INVALID_PARAMETER;
     }
   }
-  // Make sure the only characters left in the value are also alphanumeric. Allow
-  // a single decimal point for doubles.
-  bool decimal = false;
+  // Make sure the only characters left in the value are also alphanumeric. Allow a '{' at the front
+  // and a '}' at the back for arrays. Other permitted characters include '_', '.', '-', ',', and 
+  // whitespace.
   for(size_t i = 0; i < value.length(); i++){
-    if(!isalnum(value[i]) && (value[i]!='_') && (value[i] != '.') && (value[i] != '-') && (value[i] != ' ')){
-      return INVALID_VALUE;
-    }
-    else if(value[i] == '.'){
-      if(decimal){
+    if(!isalnum(value[i]) && (value[i]!='_') && (value[i] != '.') && (value[i] != '-') && (value[i] != ' ')
+       && (value[i] != ',')){
+      if((i != 0 && value[i]!='{') || (i!=value.length()-1 && value[i]!='}')){
         return INVALID_VALUE;
       }
-      decimal = true;
     }
   }
 
@@ -146,6 +147,39 @@ ParamReader::ParamResult ParamReader::parseParameter(std::string &str, std::stri
   // data map. Multiple definitions are not an issue; if the parameter already
   // exists, its last value is overwritten.
   data[section][parameter] = value;
+
+  return SUCCESS;
+}
+// }}}
+
+// stringToVector {{{
+ParamReader::ParamResult ParamReader::stringToVector(std::vector<std::string>& vec, std::string &str){
+  // Make sure we have a legal string first.
+  if(str.size() == 0){
+    return SYNTAX_ERROR;
+  }
+  // Check that the first character is a '{' character. If so,
+  // pop it off.
+  if(str.front() != '{'){
+    return SYNTAX_ERROR;
+  }
+  str.erase(0,1);
+  // Check that the last character is a '}' character. If so,
+  // pop it off.
+  if(str.back() != '}'){
+    return SYNTAX_ERROR;
+  }
+  str.pop_back();
+  // Sort through all the arguments.
+  while(str.size() > 0){
+    size_t pos = str.find(',');
+    std::string arg = str.substr(0, pos);
+    str.erase(0, pos);
+    str.erase(0, 1);
+    // We should only have legal strings entering at this point because of the checks that occur
+    // in parseParameter.
+    vec.push_back(arg);
+  }
 
   return SUCCESS;
 }
@@ -171,7 +205,7 @@ string ParamReader::readAsString(string section, string parameter){
   if(!hasParameter(section,parameter))
   {
     cout << "Warning! " << section << " : " << parameter << " does not exist!\n";
-    return string("NULL");
+    return string("");
   }
   else{
     return data[section][parameter];

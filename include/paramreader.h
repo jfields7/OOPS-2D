@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <vector>
 
 /******************************************************************************
  *
@@ -35,7 +36,7 @@ class ParamReader{
     /**
      * Data is stored in a map of maps. The first map is the sections contained
      * in the file, and the second map contains all the parameters within each
-     * section.
+     * section. Data is stored in std::vectors to facilitate reading arrays.
      */
     std::map<std::string, std::map<std::string,std::string>> data;
 
@@ -45,6 +46,12 @@ class ParamReader{
      * invalid, nothing is added and an error is returned.
      */
     ParamResult parseParameter(std::string &str, std::string &section);
+
+    /**
+     * Convert a string into an array. It must contain exactly one '{' and '}'
+     * each, which must respectively be the first and last characters.
+     */
+    ParamResult stringToVector(std::vector<std::string>& vec, std::string &str);
   public:
     /**
      * Constructor
@@ -103,6 +110,13 @@ class ParamReader{
      *           it returns 0.
      */
     int readAsInt(std::string section, std::string parameter);
+
+    /**
+     * Read a parameter value as an array of strings.
+     * @param section - The section containing the parameter.
+     * @param parameter - The parameter in question.
+     *
+     */
 
     /**
      * Clear all the data that's been read in.
