@@ -60,6 +60,7 @@ int main(int argc, char *argv[]){
   ode.initData();
   ode.setVariableOutput("Evolution",0,true);
   ode.setVariableOutput("Evolution",1,true);
+  ode.setVariableOutput("Rank",0,true);
 
   double ti = params.getTimeStart();
   double tf = params.getTimeEnd();
@@ -77,6 +78,9 @@ int main(int argc, char *argv[]){
     sprintf(buffer, "phi%05d",i+1);
     //ode.dumpField("Evolution",buffer, t, 0);
     ode.outputVTK(buffer, t);
+    if(rank == root){
+      std::cout << "Current step: " << i << "\n";
+    }
   }
 
   result = comm->cleanup();

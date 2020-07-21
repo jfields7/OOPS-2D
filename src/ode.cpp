@@ -262,9 +262,15 @@ void ODE::performGridExchange(){
     for(unsigned int b = 0; b < 2; b++){
       unsigned int pos = b + 2*d;
       if(commPartners[d][b] != -1){
-        MPI_Irecv(recvBuffer[pos], length, MPI_DOUBLE, commPartners[d][b], 
+        int sendtag = rank << 1 | b;
+        int recvtag = commPartners[d][b] << 1 | (1 - b);
+        /*MPI_Irecv(recvBuffer[pos], length, MPI_DOUBLE, commPartners[d][b], 
         commPartners[d][b], MPI_COMM_WORLD, &request_recv[pos]);
         MPI_Isend(sendBuffer[pos], length, MPI_DOUBLE, commPartners[d][b], rank, MPI_COMM_WORLD, 
+                  &request_send[pos]);*/
+        MPI_Irecv(recvBuffer[pos], length, MPI_DOUBLE, commPartners[d][b], 
+                  recvtag, MPI_COMM_WORLD, &request_recv[pos]);
+        MPI_Isend(sendBuffer[pos], length, MPI_DOUBLE, commPartners[d][b], sendtag, MPI_COMM_WORLD, 
                   &request_send[pos]);
       }
     }

@@ -2,12 +2,14 @@
 #include <iostream>
 #include <waveparameters.h>
 #include <cmath>
+#include <mpicommunicator.h>
 
 // Constructor
 Wave::Wave(Domain* d, Solver* s) : ODE(2, d, s){
   params = nullptr;
 
   addField("Evolution", nEqs, true, true);
+  addField("Rank", 1, false, false);
   setVariableName("Evolution",0,"U_PHI");
   setVariableName("Evolution",1,"U_PI");
 
@@ -72,8 +74,11 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
       unsigned int xy = grid.getIndex(nb,j);
       unsigned int x1y = grid.getIndex(nb + 1, j);
       unsigned int x2y = grid.getIndex(nb + 2, j);
-      dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dx);
-      dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dx);
+      //dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dx);
+      //dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dx);
+      // Reflection boundary
+      dudt[U_PHI][xy] = 0.0;
+      dudt[U_PI][xy] = 0.0;
     }
   }
   // Right side.
@@ -82,14 +87,18 @@ void Wave::rhs(std::shared_ptr<FieldMap>& fieldMap){
       unsigned int xy = grid.getIndex(nx - nb - 1,j);
       unsigned int x1y = grid.getIndex(nx - nb - 2, j);
       unsigned int x2y = grid.getIndex(nx - nb - 3, j);
-      dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dx);
-      dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dx);
+      //dudt[U_PHI][xy] += (-3.0*u[U_PHI][xy] + 4.0*u[U_PHI][x1y] - u[U_PHI][x2y])/(2.0*dx);
+      //dudt[U_PI ][xy] += (-3.0*u[U_PI ][xy] + 4.0*u[U_PI ][x1y] - u[U_PI ][x2y])/(2.0*dx);
+      dudt[U_PHI][xy] = 0.0;
+      dudt[U_PI ][xy] = 0.0;
     }
   }
 }
 
 void Wave::initData(){
   pair2<double> bounds = domain->getBounds();
+  MPICommunicator *comm = MPICommunicator::getInstance();
+  unsigned int rank = comm->getRank();
   double amp = 1.0;
   double sigma = 0.125;
   // Just assume a Gaussian for the time being.
@@ -97,15 +106,20 @@ void Wave::initData(){
   unsigned int ny = domain->getGrid()->getSize()[1];
 
   auto evol = (*fieldData)["Evolution"];
+  auto mpidata = (*fieldData)["Rank"];
   auto points = domain->getGrid()->getPoints();
   const double *x = points[0];
   const double *y = points[1];
   double **u = evol->getData();
+  double **r = mpidata->getData();
   for(unsigned int j = 0; j < ny; j++){
     for(unsigned int i = 0; i < nx; i++){
       unsigned int xy = domain->getGrid()->getIndex(i,j);
-      u[U_PHI][xy] = amp*std::exp(-x[i]*x[i]/(sigma*sigma));
+      double xx = x[i]*cos(y[j]) - 0.5;
+      double yy = x[i]*sin(y[j]) - 0.5;
+      u[U_PHI][xy] = amp*std::exp(-(xx*xx + yy*yy)/(sigma*sigma));
       u[U_PI ][xy] = 0.0;
+      r[0][xy] = (double)rank;
     }
   }
 }
