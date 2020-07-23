@@ -99,13 +99,19 @@ Result ODE::evolveStep(double dt){
   solver->calcStage(this, fieldData, dt, 0);
 
   // Perform the grid exchange and apply boundary conditions.
-  doAfterStage();
+  /*doAfterStage();
   performGridExchange();
   doAfterExchange();
   applyBoundaries();
-  doAfterBoundaries();
+  doAfterBoundaries();*/
 
   for(unsigned int i = 1; i < solver->getNStages(); i++){
+    // Perform the grid exchange and apply boundary conditions.
+    doAfterStage();
+    performGridExchange();
+    doAfterExchange();
+    applyBoundaries();
+    doAfterBoundaries();
     solver->setStageTime(old_time, time, dt, i);
     // Loop over every data set in the domain to update the stage.
     for(auto fieldpair : fieldData->getSolverFields()){
@@ -114,11 +120,11 @@ Result ODE::evolveStep(double dt){
     solver->calcStage(this, fieldData, dt, i);
 
     // Perform the grid exchange and apply boundary conditions.
-    doAfterStage();
+    /*doAfterStage();
     performGridExchange();
     doAfterExchange();
     applyBoundaries();
-    doAfterBoundaries();
+    doAfterBoundaries();*/
   }
   
   time = old_time + dt;
