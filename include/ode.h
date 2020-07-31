@@ -288,6 +288,16 @@ class ODE{
      * Write to a VTK file.
      */
     void outputVTK(char* name, double t);
+
+    /**
+     * Calculate the L2 norm across the entire grid, excluding ghost points,
+     * for a data set.
+     * @param data - The raw data for the variable of interest. It must have
+     *               a size (nx + 2*ng)*(ny + 2*ng), with nx being the 
+     *               number of x points, ny being the number of y points,
+     *               and ng being the number of ghost points.
+     */
+    double calcL2Norm(double *data);
 };
 
 #endif

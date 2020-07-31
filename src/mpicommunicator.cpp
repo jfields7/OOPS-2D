@@ -143,6 +143,48 @@ Result MPICommunicator::sendData(double *buffer, int size, int dest){
 */
 // }}}
 
+// allSum {{{
+Result MPICommunicator::allSum(double sendData, double &recvData){
+  if(!isInitialized){
+    return UNINITIALIZED;
+  }
+
+  //MPI_Allreduce(&sendData, &recvData, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  double *sum;
+  if(worldRank == rootRank){
+    sum = new double[worldSize];
+  }
+
+  int result = MPI_Gather(&sendData, 1, MPI_DOUBLE, sum, 1, MPI_DOUBLE, rootRank, MPI_COMM_WORLD);
+
+  if(result){
+    if(worldRank == rootRank){
+      delete[] sum;
+      return FAILURE;
+    }
+  }
+
+  if(worldRank == rootRank){
+    double prev;
+    recvData = 0.0;
+    double err = 0.0;
+    for(unsigned int i = 0; i < worldSize; i++){
+      prev = recvData;
+      recvData += sum[i] + err;
+      err = sum[i] - ((recvData - prev) - err);
+    }
+  }
+
+  result = MPI_Bcast(&recvData, 1, MPI_DOUBLE, rootRank, MPI_COMM_WORLD);
+  Result r = (result == 0) ? SUCCESS : FAILURE;
+
+  if(worldRank == rootRank){
+    delete[] sum;
+  }
+  return r;
+} 
+// }}}
+
 // findMax {{{
 Result MPICommunicator::findMax(double in, double &out){
   if(!isInitialized){

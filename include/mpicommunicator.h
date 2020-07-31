@@ -70,6 +70,14 @@ class MPICommunicator{
     //Result getData(double *buffer, int size, int src);
 
     /**
+     * Perform a sum operation on all processors. Rather than using
+     * a reduce operation, it actually gathers all the data on the
+     * root so it can perform compensated summation and then 
+     * broadcasts it back to all the other processors.
+     */
+    Result allSum(double sendData, double &recvData);
+
+    /**
      * Find the maximum across all processors.
      */
     Result findMax(double in, double &out);

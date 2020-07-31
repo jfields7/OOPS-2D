@@ -585,3 +585,34 @@ void ODE::outputVTK(char* name, double t){
   }
 }
 // }}}
+
+// calcL2Norm {{{
+double ODE::calcL2Norm(double *data){
+  MPICommunicator *comm = MPICommunicator::getInstance();
+  double prev;
+  double sum = 0.0;
+  double err = 0.0;
+  const Grid* grid = domain->getGrid();
+  unsigned int nx = grid->getSize()[0];
+  unsigned int ny = grid->getSize()[1];
+  unsigned int nb = domain->getGhostPoints();
+  double dx = grid->getSpacing()[0];
+  double dy = grid->getSpacing()[1];
+
+  for(unsigned int j = nb; j < ny - nb - 1; j++){
+    for(unsigned int i = nb; i < nx - nb - 1; i++){
+      unsigned int pp = grid->getIndex(i,j);
+      double term = data[pp]*data[pp];
+      prev = sum;
+      sum += term + err;
+      err = term - ((sum - prev) - err);
+    }
+  }
+  sum *= dx*dy;
+  
+  double totalsum;
+  comm->allSum(sum, totalsum);
+
+  return sqrt(totalsum);
+}
+// }}}
