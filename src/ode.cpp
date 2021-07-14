@@ -418,6 +418,9 @@ void ODE::dumpField(std::string field, char* name, double t, unsigned int var){
     std::ofstream out(name, std::ios::app);
     if(!out.is_open()){
       std::cout << "There was an error while saving data.";
+      delete[] done;
+      delete[] status;
+      delete[] request;
       return;
     }
     // Request a status from all the processors.
